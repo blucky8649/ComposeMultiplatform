@@ -2,10 +2,14 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -13,39 +17,29 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import navigation.NavController
+import navigation.NavHost
+import navigation.builder.composable
+import navigation.rememberNavController
+import navigation.setNavigateBackButtonIfPossible
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import org.jetbrains.compose.resources.painterResource
 
+
+lateinit var onBackPressedAction: () -> Boolean
 @OptIn(ExperimentalResourceApi::class)
 @Composable
 fun App() {
     MaterialTheme {
-        scaffoldLayout {
-            var greetingText by remember { mutableStateOf("Hello, World!") }
-            var showImage by remember { mutableStateOf(false) }
-            Column(
-                Modifier.fillMaxWidth().padding(it),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Button(onClick = {
-                    greetingText = "Hello, ${getPlatformName()}"
-                    showImage = !showImage
-                }) {
-                    Icon(
-                        Icons.Filled.Favorite,
-                        contentDescription = "Favorite",
-                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                    )
-                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                    Text(greetingText)
-                }
-                AnimatedVisibility(showImage) {
-                    Image(
-                        painterResource("compose-multiplatform.xml"),
-                        null
-                    )
-                }
+        val navController by rememberNavController(Screen.FIRST)
+
+        LaunchedEffect(Unit) {
+            onBackPressedAction = {
+                navController.popBackStack()
             }
+        }
+        scaffoldLayout(navController = navController) {
+            initNavHost(navController)
         }
 
     }
@@ -53,9 +47,13 @@ fun App() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun scaffoldLayout(modifier: Modifier = Modifier, completion: @Composable (PaddingValues) -> Unit) {
+fun scaffoldLayout(
+    navController: NavController<Screen>,
+    modifier: Modifier = Modifier,
+    completion: @Composable (PaddingValues) -> Unit)
+{
     Scaffold(
-        topBar = { topAppBar() }
+        topBar = { topAppBar(navController) }
     ) {
         completion(it)
     }
@@ -63,8 +61,10 @@ fun scaffoldLayout(modifier: Modifier = Modifier, completion: @Composable (Paddi
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun topAppBar() {
-    CenterAlignedTopAppBar(
+fun topAppBar(
+    navController: NavController<Screen>
+) {
+    TopAppBar(
         title = {
             Text(
                 "Compose Multiplatform",
@@ -73,22 +73,38 @@ fun topAppBar() {
             )
         },
         navigationIcon = {
-            IconButton(onClick = {  }) {
-                Icon(
-                    imageVector = Icons.Filled.Menu,
-                    contentDescription = "Localized description"
-                )
-            }
+            setNavigateBackButtonIfPossible(navController)
         },
         actions = {
-            IconButton(onClick = { }) {
-                Icon(
-                    imageVector = Icons.Filled.Favorite,
-                    contentDescription = "Localized description"
-                )
+            if (navController.currentScreen.needOptions) {
+                IconButton(onClick = { }) {
+                    Icon(
+                        imageVector = Icons.Filled.MoreVert,
+                        contentDescription = "Localized description"
+                    )
+                }
             }
         }
     )
 }
 
 expect fun getPlatformName(): String
+
+@Composable
+fun initNavHost(navController: NavController<Screen>) {
+    NavHost(navController) {
+        composable(Screen.FIRST) { FirstScreen {
+            navController.navigateTo(Screen.SECOND) {}
+        } }
+        composable(Screen.SECOND) { SecondScreen {
+            navController.navigateTo(Screen.THIRD) {}
+        } }
+        composable(Screen.THIRD) { ThirdScreen {
+            navController.navigateTo(Screen.FIRST) {}
+        } }
+    }.build()
+}
+
+enum class Screen(val needOptions: Boolean) {
+    FIRST(true), SECOND(false), THIRD(true)
+}
