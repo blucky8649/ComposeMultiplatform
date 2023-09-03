@@ -97,7 +97,9 @@ fun initNavHost(navController: NavController<Screen>) {
             navController.navigateTo(Screen.SECOND) {}
         } }
         composable(Screen.SECOND) { SecondScreen {
-            navController.navigateTo(Screen.THIRD) {}
+            navController.navigateTo(Screen.THIRD) {
+                popUpTo(route = Screen.SECOND, false)
+            }
         } }
         composable(Screen.THIRD) { ThirdScreen {
             navController.navigateTo(Screen.FIRST) {}

@@ -2,11 +2,11 @@ package navigation.builder
 
 class NavOptionsBuilder<T> {
     private var isAlreadyExecutedPopUpTo = false
-    var isPopUpTo = false
+    private var isPopUpTo = false
         private set
-    var isPopUpToInclusive = false
+    private var isPopUpToInclusive = false
         private set
-    var popUpToRoute: T? = null
+    private var popUpToRoute: T? = null
         private set
 
     fun popUpTo(route: T, isInclusive: Boolean = false) {
