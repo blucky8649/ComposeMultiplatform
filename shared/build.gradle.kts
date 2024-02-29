@@ -3,6 +3,7 @@ plugins {
     kotlin("native.cocoapods")
     id("com.android.library")
     id("org.jetbrains.compose")
+    id("io.github.luca992.multiplatform-swiftpackage") version "2.2.1"
 }
 
 kotlin {
@@ -11,6 +12,13 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
+    multiplatformSwiftPackage {
+        swiftToolsVersion("5.3")
+        targetPlatforms {
+            iOS { v("16.4") }
+        }
+    }
 
     cocoapods {
         version = "1.0.0"
